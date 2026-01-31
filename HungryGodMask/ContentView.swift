@@ -20,23 +20,31 @@ struct ContentView : View {
             
             // UI Overlay
             VStack {
-                // Top bar - Fruit counters
-                HStack {
-                    Spacer()
-                    
-                    HStack(spacing: 12) {
-                        FruitCounter(emoji: "🍌", count: gameManager.bananaCount)
-                        FruitCounter(emoji: "🍑", count: gameManager.peachCount)
-                        FruitCounter(emoji: "🥥", count: gameManager.coconutCount)
-                        FruitCounter(emoji: "🍉", count: gameManager.watermelonCount)
+                // Top bar - Fruit counters (only show in single-player mode)
+                if !gameManager.isInMultiplayerMode {
+                    HStack {
+                        Spacer()
+                        
+                        HStack(spacing: 12) {
+                            FruitCounter(emoji: "🍌", count: gameManager.bananaCount)
+                            FruitCounter(emoji: "🍑", count: gameManager.peachCount)
+                            FruitCounter(emoji: "🥥", count: gameManager.coconutCount)
+                            FruitCounter(emoji: "🍉", count: gameManager.watermelonCount)
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.black.opacity(0.3))
+                        )
                     }
                     .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.black.opacity(0.3))
-                    )
                 }
-                .padding()
+                
+                // Multiplayer order display
+                if gameManager.isInMultiplayerMode, let order = gameManager.currentOrder {
+                    OrderOverlayView(order: order)
+                        .padding()
+                }
                 
                 Spacer()
                 

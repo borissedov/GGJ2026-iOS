@@ -19,11 +19,20 @@ class GameManager: ObservableObject {
     @Published var coconutCount: Int = 0
     @Published var watermelonCount: Int = 0
     
+    // Multiplayer properties
+    @Published var networkState: NetworkGameState?
+    @Published var currentOrder: OrderDisplay?
+    @Published var isInMultiplayerMode: Bool = false
+    
     private var collisionSubscription: Cancellable?
     private var hitFruits: Set<ObjectIdentifier> = []
     
     // Haptic feedback generator
     private var hapticGenerator: UIImpactFeedbackGenerator?
+    
+    // Multiplayer
+    private var signalRClient: SignalRClient?
+    private var currentRoomId: UUID?
     
     init() {
         // Initialize haptic feedback (may not be available on all devices)
@@ -68,24 +77,45 @@ class GameManager: ObservableObject {
             guard !hitFruits.contains(fruitID) else { return }
             hitFruits.insert(fruitID)
             
-            // Increment score and fruit-specific counter
-            DispatchQueue.main.async { [weak self] in
-                self?.score += 1
-                
-                // Increment fruit-specific counter
-                switch fruit.fruitType {
-                case .banana:
-                    self?.bananaCount += 1
-                case .peach:
-                    self?.peachCount += 1
-                case .coconut:
-                    self?.coconutCount += 1
-                case .watermelon:
-                    self?.watermelonCount += 1
+            if isInMultiplayerMode {
+                // Report to server
+                Task { [weak self] in
+                    guard let self = self,
+                          let roomId = self.currentRoomId,
+                          let client = self.signalRClient else { return }
+                    
+                    let hitId = UUID()
+                    do {
+                        try await client.reportHit(
+                            roomId: roomId,
+                            hitId: hitId,
+                            fruitType: fruit.fruitType
+                        )
+                        print("🎯 Reported hit: \(fruit.fruitType)")
+                    } catch {
+                        print("❌ Failed to report hit: \(error)")
+                    }
                 }
-                
-                // Trigger haptic feedback (if available)
-                self?.hapticGenerator?.impactOccurred()
+            } else {
+                // Local scoring (existing logic)
+                DispatchQueue.main.async { [weak self] in
+                    self?.score += 1
+                    
+                    // Increment fruit-specific counter
+                    switch fruit.fruitType {
+                    case .banana:
+                        self?.bananaCount += 1
+                    case .peach:
+                        self?.peachCount += 1
+                    case .coconut:
+                        self?.coconutCount += 1
+                    case .watermelon:
+                        self?.watermelonCount += 1
+                    }
+                    
+                    // Trigger haptic feedback (if available)
+                    self?.hapticGenerator?.impactOccurred()
+                }
             }
             
             // Optional: Visual/audio feedback
@@ -110,6 +140,36 @@ class GameManager: ObservableObject {
         coconutCount = 0
         watermelonCount = 0
         hitFruits.removeAll()
+    }
+    
+    // MARK: - Multiplayer Integration
+    
+    func enableMultiplayer(signalRClient: SignalRClient, roomId: UUID) {
+        self.signalRClient = signalRClient
+        self.currentRoomId = roomId
+        self.isInMultiplayerMode = true
+        
+        print("✅ Multiplayer enabled for room: \(roomId)")
+    }
+    
+    func handleStateSnapshot(_ snapshot: StateSnapshotEvent) {
+        networkState = NetworkGameState(from: snapshot)
+        
+        if let order = snapshot.currentOrder {
+            // Convert to OrderDisplay (requires OrderStartedEvent structure)
+            // This is a simplified conversion
+            print("📦 Received current order")
+        }
+    }
+    
+    func handleOrderStarted(_ event: OrderStartedEvent) {
+        currentOrder = OrderDisplay(from: event)
+        print("🎯 New order started: \(event.orderNumber)")
+    }
+    
+    func handleOrderTotalsUpdated(_ event: OrderTotalsUpdatedEvent) {
+        currentOrder?.updateSubmitted(event)
+        print("📊 Order totals updated")
     }
     
     deinit {
