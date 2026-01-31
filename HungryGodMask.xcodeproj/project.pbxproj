@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		302AE7832F2E869800183FDF /* SignalRClient in Frameworks */ = {isa = PBXBuildFile; productRef = 302AE7822F2E869800183FDF /* SignalRClient */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		302AE7452F2DE59200183FDF /* HungryGodMask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HungryGodMask.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				302AE7832F2E869800183FDF /* SignalRClient in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = HungryGodMask;
 			packageProductDependencies = (
+				302AE7822F2E869800183FDF /* SignalRClient */,
 			);
 			productName = HungryGodMask;
 			productReference = 302AE7452F2DE59200183FDF /* HungryGodMask.app */;
@@ -94,6 +100,9 @@
 			);
 			mainGroup = 302AE73C2F2DE59200183FDF;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				302AE7812F2E869800183FDF /* XCRemoteSwiftPackageReference "SignalR-Client-Swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 302AE7462F2DE59200183FDF /* Products */;
 			projectDirPath = "";
@@ -336,6 +345,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		302AE7812F2E869800183FDF /* XCRemoteSwiftPackageReference "SignalR-Client-Swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/moozzyk/SignalR-Client-Swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		302AE7822F2E869800183FDF /* SignalRClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 302AE7812F2E869800183FDF /* XCRemoteSwiftPackageReference "SignalR-Client-Swift" */;
+			productName = SignalRClient;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 302AE73D2F2DE59200183FDF /* Project object */;
 }
