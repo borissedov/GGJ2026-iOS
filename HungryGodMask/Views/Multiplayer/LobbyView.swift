@@ -124,30 +124,44 @@ struct LobbyView: View {
                             .font(.title3)
                             .foregroundColor(.green)
                         
-                        Toggle(isOn: $isReady) {
-                            Text("Ready")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                        }
-                        .toggleStyle(SwitchToggleStyle(tint: .green))
-                        .padding()
-                        .background(Color.white.opacity(0.2))
-                        .cornerRadius(15)
-                        .padding(.horizontal, 40)
-                        .onChange(of: isReady) { _, newValue in
-                            toggleReady(newValue)
-                        }
+                VStack(spacing: 16) {
+                    Toggle(isOn: $isReady) {
+                        Text("Ready")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: .green))
+                    .padding()
+                    .background(Color.white.opacity(0.2))
+                    .cornerRadius(15)
+                    .padding(.horizontal, 40)
+                    .onChange(of: isReady) { _, newValue in
+                        toggleReady(newValue)
+                    }
+                    
+                    if isReady {
+                        Text("Waiting for other players...")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                            .padding(.top, 8)
                         
-                        Button("Start AR Game") {
-                            navigateToAR = true
-                        }
-                        .font(.headline)
-                        .padding()
-                        .frame(maxWidth: 250)
-                        .background(isReady ? Color.blue : Color.gray)
-                        .foregroundColor(.white)
-                        .cornerRadius(15)
-                        .disabled(!isReady)
+                        Text("Game starts automatically when everyone is ready")
+                            .font(.caption2)
+                            .foregroundColor(.white.opacity(0.7))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    
+                    Button("Enter AR View") {
+                        navigateToAR = true
+                    }
+                    .font(.headline)
+                    .padding()
+                    .frame(maxWidth: 250)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(15)
+                }
                     }
                 }
                 
