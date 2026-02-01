@@ -24,7 +24,6 @@ struct NavigationCoordinator: View {
     
     // Navigation state
     @State private var navigateToQRScanner = false
-    @State private var navigateToSinglePlayer = false
     @State private var navigateToPlayerName = false
     @State private var navigateToLobby = false
     @State private var navigateToARGame = false
@@ -49,17 +48,11 @@ struct NavigationCoordinator: View {
                 
             case .welcome:
                 WelcomeView(
-                    navigateToQRScanner: $navigateToQRScanner,
-                    navigateToSinglePlayer: $navigateToSinglePlayer
+                    navigateToQRScanner: $navigateToQRScanner
                 )
                 .onChange(of: navigateToQRScanner) { _, navigate in
                     if navigate {
                         currentScreen = .qrScanner
-                    }
-                }
-                .onChange(of: navigateToSinglePlayer) { _, navigate in
-                    if navigate {
-                        currentScreen = .arGame
                     }
                 }
                 

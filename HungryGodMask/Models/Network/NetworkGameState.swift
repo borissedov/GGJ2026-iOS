@@ -11,8 +11,13 @@ struct NetworkGameState {
     var mood: Int
     var currentOrder: NetworkOrder?
     var orderIndex: Int
-    var orderEndsAt: Date?
+    var orderEndsAt: String?  // ISO 8601 date string
     var players: [NetworkPlayer]
+    
+    var orderEndsAtDate: Date? {
+        guard let orderEndsAt = orderEndsAt else { return nil }
+        return ISO8601DateFormatter().date(from: orderEndsAt)
+    }
     
     init(from snapshot: StateSnapshotEvent) {
         self.roomId = snapshot.roomId
@@ -36,7 +41,15 @@ struct NetworkOrder: Codable {
     let orderId: UUID
     let required: [String: Int]  // FruitType: count
     let submitted: [String: Int]
-    let startsAt: Date
-    let endsAt: Date
-    let status: String
+    let startsAt: String  // ISO 8601 date string from server
+    let endsAt: String    // ISO 8601 date string from server
+    let status: Int       // OrderStatus enum value
+    
+    var startsAtDate: Date? {
+        ISO8601DateFormatter().date(from: startsAt)
+    }
+    
+    var endsAtDate: Date? {
+        ISO8601DateFormatter().date(from: endsAt)
+    }
 }

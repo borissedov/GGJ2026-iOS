@@ -144,22 +144,12 @@ struct LobbyView: View {
                             .foregroundColor(.green)
                             .padding(.top, 8)
                         
-                        Text("Game starts automatically when everyone is ready")
+                        Text("AR view opens automatically when everyone is ready")
                             .font(.caption2)
                             .foregroundColor(.white.opacity(0.7))
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                     }
-                    
-                    Button("Enter AR View") {
-                        navigateToAR = true
-                    }
-                    .font(.headline)
-                    .padding()
-                    .frame(maxWidth: 250)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(15)
                 }
                     }
                 }
@@ -216,13 +206,18 @@ struct LobbyView: View {
             self.gameManager.handleStateSnapshot(snapshot)
         }
         
-        signalRClient.onOrderStarted = { event in
-            print("🎯 Order started - automatically transitioning to AR")
-            self.gameManager.handleOrderStarted(event)
-            // Auto-transition to AR when game starts
+        signalRClient.onCountdownStarted = { event in
+            print("⏳ Countdown started - automatically transitioning to AR")
+            // Auto-transition to AR when countdown starts (before game begins)
+            // This gives players time to point their camera at the mask
             DispatchQueue.main.async {
                 navBinding.wrappedValue = true
             }
+        }
+        
+        signalRClient.onOrderStarted = { event in
+            print("🎯 Order started")
+            self.gameManager.handleOrderStarted(event)
         }
         
         signalRClient.onOrderTotalsUpdated = { event in

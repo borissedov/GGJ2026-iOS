@@ -32,14 +32,37 @@ struct VideoSplashView: View {
     }
     
     private func setupPlayer() {
-        // Try to load video from bundle
-        guard let videoPath = Bundle.main.path(forResource: "splash_video", ofType: "mp4") else {
+        // Try multiple paths - folder structure may or may not be preserved in bundle
+        let videoPath: String? = 
+            Bundle.main.path(forResource: "splash_video", ofType: "mp4", inDirectory: "Videos") ??
+            Bundle.main.path(forResource: "splash_video", ofType: "mp4")
+        
+        #if DEBUG
+        // Debug: list bundle contents to verify video is included
+        if let resourcePath = Bundle.main.resourcePath {
+            let fileManager = FileManager.default
+            if let contents = try? fileManager.contentsOfDirectory(atPath: resourcePath) {
+                print("📦 Bundle root contents: \(contents)")
+            }
+            let videosPath = resourcePath + "/Videos"
+            if let videosContents = try? fileManager.contentsOfDirectory(atPath: videosPath) {
+                print("📦 Videos folder contents: \(videosContents)")
+            } else {
+                print("📦 No Videos folder found in bundle")
+            }
+        }
+        #endif
+        
+        guard let videoPath = videoPath else {
+            print("⚠️ splash_video.mp4 not found in bundle")
             // If video not found, skip splash after 0.5 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isComplete = true
             }
             return
         }
+        
+        print("✅ Found video at: \(videoPath)")
         
         let url = URL(fileURLWithPath: videoPath)
         let playerItem = AVPlayerItem(url: url)

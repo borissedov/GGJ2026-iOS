@@ -23,6 +23,7 @@ class SignalRClient: ObservableObject {
     var onRoomStateUpdated: ((RoomStateUpdatedEvent) -> Void)?
     var onStateSnapshot: ((StateSnapshotEvent) -> Void)?
     var onGamePhaseChanged: ((GamePhaseChangedEvent) -> Void)?
+    var onCountdownStarted: ((CountdownStartedEvent) -> Void)?
     var onOrderStarted: ((OrderStartedEvent) -> Void)?
     var onOrderTotalsUpdated: ((OrderTotalsUpdatedEvent) -> Void)?
     var onOrderResolved: ((OrderResolvedEvent) -> Void)?
@@ -174,6 +175,14 @@ class SignalRClient: ObservableObject {
             print("📊 StateSnapshot received - State: \(snapshot.state)")
             DispatchQueue.main.async {
                 self.onStateSnapshot?(snapshot)
+            }
+        }
+        
+        hubConnection?.on(method: "CountdownStarted") { [weak self] (event: CountdownStartedEvent) in
+            guard let self = self else { return }
+            print("⏳ CountdownStarted received - game starting soon")
+            DispatchQueue.main.async {
+                self.onCountdownStarted?(event)
             }
         }
         

@@ -45,18 +45,23 @@ class GameManager: ObservableObject {
     
     // Subscribe to collision events
     func setupCollisionDetection(for scene: RealityKit.Scene) {
+        print("🎯 Setting up collision detection for scene")
         collisionSubscription = scene.subscribe(
             to: CollisionEvents.Began.self,
             on: nil
         ) { [weak self] event in
             self?.handleCollision(event)
         }
+        print("🎯 Collision subscription created: \(collisionSubscription != nil)")
     }
     
     private func handleCollision(_ event: CollisionEvents.Began) {
         // Check if one of the entities is a fruit and the other is the gate
         let entityA = event.entityA
         let entityB = event.entityB
+        
+        // Debug: Log all collisions
+        print("💥 Collision detected: \(type(of: entityA)) vs \(type(of: entityB))")
         
         var fruit: FruitEntity?
         var isGate = false
@@ -65,9 +70,11 @@ class GameManager: ObservableObject {
         if let fruitA = entityA as? FruitEntity, entityB is MouthGateEntity {
             fruit = fruitA
             isGate = true
+            print("💥 Fruit-Gate collision! Fruit: \(fruitA.fruitType)")
         } else if let fruitB = entityB as? FruitEntity, entityA is MouthGateEntity {
             fruit = fruitB
             isGate = true
+            print("💥 Fruit-Gate collision! Fruit: \(fruitB.fruitType)")
         }
         
         // Process the hit
@@ -75,15 +82,23 @@ class GameManager: ObservableObject {
             let fruitID = ObjectIdentifier(fruit)
             
             // Only count each fruit once
-            guard !hitFruits.contains(fruitID) else { return }
+            guard !hitFruits.contains(fruitID) else { 
+                print("💥 Duplicate hit ignored for \(fruit.fruitType)")
+                return 
+            }
             hitFruits.insert(fruitID)
+            
+            print("💥 Processing hit - Multiplayer: \(isInMultiplayerMode), RoomId: \(currentRoomId?.uuidString ?? "nil"), Client: \(signalRClient != nil)")
             
             if isInMultiplayerMode {
                 // Report to server
                 Task { [weak self] in
                     guard let self = self,
                           let roomId = self.currentRoomId,
-                          let client = self.signalRClient else { return }
+                          let client = self.signalRClient else { 
+                        print("❌ Missing multiplayer components - roomId: \(self?.currentRoomId?.uuidString ?? "nil"), client: \(self?.signalRClient != nil)")
+                        return 
+                    }
                     
                     let hitId = UUID()
                     do {
@@ -169,8 +184,12 @@ class GameManager: ObservableObject {
     }
     
     func handleOrderTotalsUpdated(_ event: OrderTotalsUpdatedEvent) {
-        currentOrder?.updateSubmitted(event)
-        print("📊 Order totals updated")
+        // Must unwrap, mutate, and reassign to trigger @Published update
+        if var order = currentOrder {
+            order.updateSubmitted(event)
+            currentOrder = order
+            print("📊 Order totals updated: \(order.submitted)")
+        }
     }
     
     deinit {

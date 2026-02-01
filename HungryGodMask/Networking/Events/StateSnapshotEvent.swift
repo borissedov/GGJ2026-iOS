@@ -11,7 +11,7 @@ struct StateSnapshotEvent: Codable {
     let mood: Int        // GodMood
     let currentOrder: NetworkOrder?
     let orderIndex: Int
-    let orderEndsAt: Date?
+    let orderEndsAt: String?  // ISO 8601 date string from server
     let players: [NetworkPlayer]
     
     var state: String {
@@ -27,6 +27,11 @@ struct StateSnapshotEvent: Codable {
         case 6: return "Closed"
         default: return "Unknown"
         }
+    }
+    
+    var orderEndsAtDate: Date? {
+        guard let orderEndsAt = orderEndsAt else { return nil }
+        return ISO8601DateFormatter().date(from: orderEndsAt)
     }
     
     enum CodingKeys: String, CodingKey {

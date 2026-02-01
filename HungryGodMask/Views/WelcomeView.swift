@@ -9,7 +9,6 @@ import SwiftUI
 
 struct WelcomeView: View {
     @Binding var navigateToQRScanner: Bool
-    @Binding var navigateToSinglePlayer: Bool
     
     var body: some View {
         ZStack {
@@ -37,57 +36,29 @@ struct WelcomeView: View {
                 
                 Spacer()
                 
-                // Game mode buttons
-                VStack(spacing: 20) {
-                    // Multiplayer button
-                    Button(action: {
-                        navigateToQRScanner = true
-                    }) {
-                        HStack {
-                            Image(systemName: "person.3.fill")
-                                .font(.title2)
-                            Text("Join Multiplayer")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                        }
-                        .frame(maxWidth: 280)
-                        .padding(.vertical, 18)
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color.green, Color.green.opacity(0.8)]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .foregroundColor(.white)
-                        .cornerRadius(15)
-                        .shadow(color: .green.opacity(0.4), radius: 10, x: 0, y: 5)
+                // Start game button
+                Button(action: {
+                    navigateToQRScanner = true
+                }) {
+                    HStack {
+                        Image(systemName: "play.fill")
+                            .font(.title2)
+                        Text("Start Game")
+                            .font(.title3)
+                            .fontWeight(.semibold)
                     }
-                    
-                    // Single player button
-                    Button(action: {
-                        navigateToSinglePlayer = true
-                    }) {
-                        HStack {
-                            Image(systemName: "person.fill")
-                                .font(.title2)
-                            Text("Single Player")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                        }
-                        .frame(maxWidth: 280)
-                        .padding(.vertical, 18)
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                    .frame(maxWidth: 280)
+                    .padding(.vertical, 18)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.green, Color.green.opacity(0.8)]),
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
-                        .foregroundColor(.white)
-                        .cornerRadius(15)
-                        .shadow(color: .blue.opacity(0.4), radius: 10, x: 0, y: 5)
-                    }
+                    )
+                    .foregroundColor(.white)
+                    .cornerRadius(15)
+                    .shadow(color: .green.opacity(0.4), radius: 10, x: 0, y: 5)
                 }
                 .padding(.horizontal, 40)
                 

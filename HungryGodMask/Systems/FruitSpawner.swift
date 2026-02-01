@@ -118,10 +118,10 @@ class FruitSpawner {
             let awayFromCamera = worldPosition + (worldPosition - cameraPosition)
             fruit.look(at: awayFromCamera, from: worldPosition, relativeTo: nil)
             
-            // Debug: Log panel position occasionally
-            if index == 0 && Int.random(in: 0..<60) == 0 {
-                print("🍎 DEBUG: Panel banana at \(worldPosition), camera at \(cameraPosition)")
-            }
+            // Debug logging disabled - uncomment if needed
+            // if index == 0 && Int.random(in: 0..<60) == 0 {
+            //     print("🍎 DEBUG: Panel banana at \(worldPosition), camera at \(cameraPosition)")
+            // }
         }
     }
     

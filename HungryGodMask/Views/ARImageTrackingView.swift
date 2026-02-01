@@ -102,7 +102,8 @@ struct ARImageTrackingView: UIViewRepresentable {
                         }
                     } else {
                         // Not tracked - keep anchor at last known position, just update state
-                        print("🍎 DEBUG: Tracking lost, keeping gate at last position")
+                        // Debug logging disabled - uncomment if needed
+                        // print("🍎 DEBUG: Tracking lost, keeping gate at last position")
                         DispatchQueue.main.async { [weak self] in
                             self?.gameManager.isTracking = false
                         }
@@ -206,10 +207,10 @@ struct ARImageTrackingView: UIViewRepresentable {
             
             let cameraTransform = Transform(matrix: currentFrame.camera.transform)
             
-            // Add debug logging (only log occasionally to avoid spam)
-            if Int.random(in: 0..<60) == 0 {  // Log ~1 per second at 60fps
-                print("🍎 DEBUG: Camera at: \(cameraTransform.translation)")
-            }
+            // Debug logging disabled - uncomment if needed
+            // if Int.random(in: 0..<60) == 0 {
+            //     print("🍎 DEBUG: Camera at: \(cameraTransform.translation)")
+            // }
             
             // Update fruit positions and billboarding
             fruitSpawner?.updateFruitPositions(cameraTransform: cameraTransform)

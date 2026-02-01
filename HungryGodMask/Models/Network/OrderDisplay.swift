@@ -8,7 +8,7 @@ import Foundation
 struct OrderDisplay {
     let orderNumber: Int
     let required: [FruitType: Int]
-    let submitted: [FruitType: Int]
+    var submitted: [FruitType: Int]  // Changed to var so it can be updated
     var timeRemaining: Int
     
     init(from event: OrderStartedEvent) {
@@ -45,5 +45,7 @@ struct OrderDisplay {
                 submittedDict[fruitType] = 0
             }
         }
+        // Actually update the submitted counts!
+        self.submitted = submittedDict
     }
 }
