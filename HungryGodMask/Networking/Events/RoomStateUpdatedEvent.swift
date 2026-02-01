@@ -1,18 +1,16 @@
 //
-//  StateSnapshotEvent.swift
+//  RoomStateUpdatedEvent.swift
 //  HungryGodMask
 //
 
 import Foundation
 
-struct StateSnapshotEvent: Codable {
+struct RoomStateUpdatedEvent: Codable {
     let roomId: UUID
-    let stateValue: Int  // RoomState as integer
-    let mood: Int        // GodMood
-    let currentOrder: NetworkOrder?
-    let orderIndex: Int
-    let orderEndsAt: Date?
+    let stateValue: Int
     let players: [NetworkPlayer]
+    let connectedCount: Int
+    let readyCount: Int
     
     var state: String {
         // Map integer to RoomState string
@@ -30,7 +28,7 @@ struct StateSnapshotEvent: Codable {
     }
     
     enum CodingKeys: String, CodingKey {
-        case roomId, mood, currentOrder, orderIndex, orderEndsAt, players
+        case roomId, players, connectedCount, readyCount
         case stateValue = "state"
     }
 }

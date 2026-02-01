@@ -16,7 +16,7 @@ struct NetworkGameState {
     
     init(from snapshot: StateSnapshotEvent) {
         self.roomId = snapshot.roomId
-        self.state = snapshot.state
+        self.state = snapshot.state  // Now uses computed property
         self.mood = snapshot.mood
         self.currentOrder = snapshot.currentOrder
         self.orderIndex = snapshot.orderIndex
