@@ -20,8 +20,8 @@ struct PlayerNameView: View {
             // Background gradient
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color(red: 0.3, green: 0.5, blue: 0.7),
-                    Color(red: 0.2, green: 0.3, blue: 0.5)
+                    Color.black.opacity(0.9),
+                    Color.purple.opacity(0.7)
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing

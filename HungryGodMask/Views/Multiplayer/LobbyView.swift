@@ -24,7 +24,7 @@ struct LobbyView: View {
         ZStack {
             // Background gradient
             LinearGradient(
-                gradient: Gradient(colors: [Color.purple.opacity(0.6), Color.blue.opacity(0.6)]),
+                gradient: Gradient(colors: [Color.black.opacity(0.8), Color.purple.opacity(0.6)]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -211,20 +211,27 @@ struct LobbyView: View {
     
     private func setupEventHandlers() {
         signalRClient.onStateSnapshot = { snapshot in
-            print("📊 Received state snapshot")
+            print("📊 Received state snapshot - State: \(snapshot.state)")
             gameManager.handleStateSnapshot(snapshot)
         }
         
-        signalRClient.onOrderStarted = { event in
+        signalRClient.onOrderStarted = { [weak self] event in
+            print("🎯 Order started - automatically transitioning to AR")
             gameManager.handleOrderStarted(event)
+            // Auto-transition to AR when game starts
+            DispatchQueue.main.async {
+                self?.navigateToAR = true
+            }
         }
         
         signalRClient.onOrderTotalsUpdated = { event in
             gameManager.handleOrderTotalsUpdated(event)
         }
         
-        signalRClient.onError = { error in
-            errorMessage = error.message
+        signalRClient.onError = { [weak self] error in
+            DispatchQueue.main.async {
+                self?.errorMessage = error.message
+            }
         }
     }
     
