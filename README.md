@@ -7,66 +7,55 @@ An AR game for Global Game Jam 2026 where players throw fruits into an animated 
 - **AR Image Tracking**: Track an animated mask displayed on a TV/projector screen
 - **Physics-Based Throwing**: Swipe to throw fruits with realistic physics
 - **Collision Detection**: Score points by hitting the invisible mouth gate
-- **4 Fruit Types**: Banana, Peach, Coconut, Watermelon (each with unique mass/size)
+- **Multiplayer**: Work together with other players to fulfill orders
 
 ## Setup Requirements
 
 ### Hardware
 - iOS device with ARKit support (iPhone 6s or later)
-- TV, projector, or large screen
-- Device to play mask animation video (laptop, Apple TV, etc.)
+- TV, projector, or large screen (for the Host Display)
+- Internet connection
 
 ### Software
 - Xcode 14.0+
 - iOS 15.0+
 
-### Assets Needed
-1. Mask animation video (MP4, looping)
-2. AR reference image (extracted from video frame)
-3. 4 fruit sprite images (PNG with transparency)
+## Multiplayer Setup
 
-**See [ASSETS_SETUP_GUIDE.md](ASSETS_SETUP_GUIDE.md) for detailed instructions**
+This app is designed to work with the **Oh My Hungry God** multiplayer system.
 
-## How It Works
+1.  **Host Display**: Runs on a web browser (TV/Projector).
+2.  **Backend**: .NET 9 server managing game state.
+3.  **iOS Client**: This app, connecting via SignalR.
 
-### Architecture
-```
-TV/Projector (Mask Video) 
-    ↓ (tracked by)
-ARKit Image Tracking
-    ↓
-Invisible Collision Gate (at mouth position)
-    ↓
-Physics Simulation (fruits + throwing)
-    ↓
-Score on successful hits
-```
-
-### Key Components
-
-- **ARImageTrackingView**: Manages AR session and image tracking
-- **MouthGateEntity**: Invisible collision trigger at mouth location
-- **FruitEntity**: Physics-enabled 2D sprites with billboarding
-- **FruitSpawner**: Manages fruit spawning and respawning
-- **ThrowGestureHandler**: Converts swipe gestures to physics impulses
-- **GameManager**: Collision detection and score tracking
+See **[MULTIPLAYER_SETUP.md](MULTIPLAYER_SETUP.md)** for detailed deployment and connection instructions.
 
 ## Project Structure
 
 ```
 HungryGodMask/
 ├── AppDelegate.swift
-├── ContentView.swift (Main UI with score overlay)
+├── ContentView.swift           # Main entry view
 ├── Views/
-│   └── ARImageTrackingView.swift
+│   ├── ARImageTrackingView.swift # AR view & session management
+│   ├── WelcomeView.swift       # Initial landing screen
+│   ├── VideoSplashView.swift   # Intro video
+│   ├── QRScannerView.swift     # Scanner for joining rooms
+│   ├── PlayerNameView.swift    # Name entry
+│   └── Multiplayer/
+│       ├── LobbyView.swift     # Waiting room UI
+│       └── OrderOverlayView.swift # In-game order UI
+├── Networking/
+│   ├── SignalRClient.swift     # WebSocket connection manager
+│   └── Events/                 # Network event models
 ├── Entities/
-│   ├── FruitType.swift (Enum with physics properties)
-│   ├── FruitEntity.swift (2D sprite with physics)
-│   └── MouthGateEntity.swift (Invisible collision gate)
+│   ├── FruitType.swift         # Enum with physics properties
+│   ├── FruitEntity.swift       # 2D sprite with physics
+│   └── MouthGateEntity.swift   # Invisible collision gate
 ├── Systems/
-│   ├── GameManager.swift (Score tracking & collision)
-│   ├── FruitSpawner.swift (Fruit lifecycle management)
-│   └── ThrowGestureHandler.swift (Gesture → physics)
+│   ├── GameManager.swift       # Game logic & state management
+│   ├── FruitSpawner.swift      # Fruit lifecycle management
+│   └── ThrowGestureHandler.swift # Gesture → physics
 └── Assets.xcassets/
     ├── AR Resources.arresourcegroup/
     └── [Fruit sprites]
@@ -74,21 +63,19 @@ HungryGodMask/
 
 ## Building and Running
 
-1. Complete asset setup (see ASSETS_SETUP_GUIDE.md)
-2. Open `HungryGodMask.xcodeproj` in Xcode
-3. Connect iOS device
-4. Select your device as the build target
-5. Build and Run (⌘R)
+1.  Open `HungryGodMask.xcodeproj` in Xcode.
+2.  Ensure you have the SignalR Swift package added (see `MULTIPLAYER_SETUP.md`).
+3.  Connect your iOS device.
+4.  Select your device as the build target.
+5.  Build and Run (⌘R).
 
 ## Playing the Game
 
-1. Start mask video playing on TV/projector (looping)
-2. Launch app on iOS device
-3. Point camera at TV screen showing the mask
-4. Wait for tracking to activate (score counter appears)
-5. See 4 fruits at bottom of screen
-6. Swipe on a fruit to throw it
-7. Aim for the mask's mouth to score points!
+1.  **Join a Room**: Scan the QR code on the Host Display or enter the code manually.
+2.  **Lobby**: Wait for other players and tap "Ready".
+3.  **AR Mode**: When the game starts, point your camera at the TV screen showing the mask.
+4.  **Throw**: Swipe on the fruits at the bottom of your screen to throw them into the mask's mouth.
+5.  **Collaborate**: Work with your team to fulfill the orders displayed on the screen!
 
 ## Customization
 
@@ -96,18 +83,6 @@ HungryGodMask/
 Edit `Entities/MouthGateEntity.swift`:
 ```swift
 static let defaultMouthOffset = SIMD3<Float>(0, -0.05, 0)  // X, Y, Z in meters
-```
-
-### Adjust Gate Size
-```swift
-static let gateWidth: Float = 0.15   // 15cm
-static let gateHeight: Float = 0.10  // 10cm
-```
-
-### Enable Debug Visualization
-In `MouthGateEntity.swift`, uncomment line 49:
-```swift
-addDebugVisualization()  // Shows green box at gate location
 ```
 
 ### Adjust Fruit Physics
@@ -122,42 +97,12 @@ private let velocityMultiplier: Float = 0.003
 private let maxThrowVelocity: Float = 10.0
 ```
 
-## Troubleshooting
-
-### AR Image Tracking Issues
-See [AR_TRACKING_GUIDE.md](AR_TRACKING_GUIDE.md) for:
-- Debug console output interpretation
-- Physical size calibration
-- Optimal lighting and screen setup
-- Common tracking problems and solutions
-
-### Asset Setup
-See [ASSETS_SETUP_GUIDE.md](ASSETS_SETUP_GUIDE.md) for sprite and reference image preparation.
-
-## Technical Details
-
-- **AR Framework**: ARKit with ARImageTrackingConfiguration
-- **3D Engine**: RealityKit with physics simulation
-- **UI**: SwiftUI overlays on AR view
-- **Physics**: Dynamic rigid bodies with collision detection
-- **Gesture Recognition**: UIPanGestureRecognizer
-
-## Development Notes
-
-### Animation Handling
-The mask video has subtle animation (~1-3cm movement). The collision gate uses a fixed position with slightly oversized dimensions (1.2× mouth size) to account for drift. ARKit continuously re-tracks, so minor position drift is acceptable.
-
-### Performance Optimizations
-- Maximum 4 active fruits (one per type)
-- Simple sphere collision shapes
-- Automatic despawn at 3m distance
-- Billboard rendering for 2D sprites
-
 ## Documentation
 
-- **[AR_TRACKING_GUIDE.md](AR_TRACKING_GUIDE.md)** - AR image tracking troubleshooting and debug guide
-- **[ASSETS_SETUP_GUIDE.md](ASSETS_SETUP_GUIDE.md)** - Asset preparation instructions
-- **[QUICKSTART.md](QUICKSTART.md)** - Quick start guide
+- **[MULTIPLAYER_README.md](MULTIPLAYER_README.md)** - Overview of the multiplayer architecture
+- **[MULTIPLAYER_SETUP.md](MULTIPLAYER_SETUP.md)** - Detailed setup guide
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - High-level architectural overview
+- **[GAME_DESCRIPTION.md](GAME_DESCRIPTION.md)** - Game design document
 
 ## Credits
 
