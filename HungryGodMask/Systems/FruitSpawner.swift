@@ -10,6 +10,7 @@ import Combine
 
 class FruitSpawner {
     private var fruits: [FruitType: FruitEntity] = [:]
+    private var fruitOrder: [FruitType] = FruitType.allCases
     private var updateSubscription: Cancellable?
     private weak var scene: RealityKit.Scene?
     private weak var cameraAnchor: AnchorEntity?
@@ -56,6 +57,12 @@ class FruitSpawner {
         print("🍎 DEBUG: Spawned \(type.rawValue) thumbnail at \(fruit.position)")
     }
     
+    // Randomize the order of fruits in the panel
+    func randomizeFruitOrder() {
+        fruitOrder = FruitType.allCases.shuffled()
+        print("🔀 Randomized fruit order: \(fruitOrder.map { $0.rawValue })")
+    }
+    
     // Update fruit positions to stay at screen bottom relative to camera
     func updateFruitPositions(cameraTransform: Transform) {
         let cameraPosition = cameraTransform.translation
@@ -77,8 +84,8 @@ class FruitSpawner {
             cameraTransform.matrix.columns.1.z
         )
         
-        let allTypes = FruitType.allCases
-        for (index, type) in allTypes.enumerated() {
+        // Use the randomized order for positioning
+        for (index, type) in fruitOrder.enumerated() {
             guard let fruit = fruits[type] else { continue }
             
             // Skip if fruit is being dragged (gesture handler controls position)
@@ -98,7 +105,7 @@ class FruitSpawner {
             
             // Panel layout: compact spacing for thumbnails
             let spacing: Float = 0.04  // 4cm between thumbnails (narrower panel)
-            let totalWidth = Float(allTypes.count - 1) * spacing
+            let totalWidth = Float(fruitOrder.count - 1) * spacing
             let startX = -totalWidth / 2
             let xOffset = startX + Float(index) * spacing
             
@@ -132,6 +139,11 @@ class FruitSpawner {
     }
     
     private func respawnFruit(_ fruit: FruitEntity) {
+        // Play miss sound if fruit was thrown (expanded) and didn't hit
+        if fruit.isExpanded {
+            SoundManager.shared.playMiss()
+        }
+        
         // Reset to thumbnail size and kinematic physics
         fruit.resetToThumbnail()
         

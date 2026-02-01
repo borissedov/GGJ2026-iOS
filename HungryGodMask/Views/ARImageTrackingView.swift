@@ -184,6 +184,9 @@ struct ARImageTrackingView: UIViewRepresentable {
                 spawner.setup(in: arView.scene)
                 self.fruitSpawner = spawner
                 
+                // Pass spawner reference to game manager for order randomization
+                self.gameManager.setFruitSpawner(spawner)
+                
                 // Setup gesture handler
                 let handler = ThrowGestureHandler(arView: arView, fruitSpawner: spawner)
                 self.gestureHandler = handler

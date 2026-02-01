@@ -12,7 +12,7 @@ struct QRScannerView: View {
     @Binding var scannedCode: String?
     @Binding var manualCode: String
     @Binding var navigateToPlayerName: Bool
-    @Environment(\.dismiss) private var dismiss
+    @Binding var navigateBack: Bool
     
     @State private var isScanning = true
     @State private var showManualEntry = false
@@ -25,7 +25,7 @@ struct QRScannerView: View {
                 // Header
                 HStack {
                     Button(action: {
-                        dismiss()
+                        navigateBack = true
                     }) {
                         HStack(spacing: 4) {
                             Image(systemName: "chevron.left")

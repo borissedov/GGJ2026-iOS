@@ -8,5 +8,5 @@ import Foundation
 struct OrderTotalsUpdatedEvent: Codable {
     let orderId: UUID
     let submitted: [String: Int]  // FruitType: count
-    let timestamp: Date
+    let timestamp: String  // ISO 8601 date string from server
 }

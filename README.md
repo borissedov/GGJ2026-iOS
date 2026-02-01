@@ -6,8 +6,11 @@ An AR game for Global Game Jam 2026 where players throw fruits into an animated 
 
 - **AR Image Tracking**: Track an animated mask displayed on a TV/projector screen
 - **Physics-Based Throwing**: Swipe to throw fruits with realistic physics
+- **Sound Effects**: Audio feedback for touch, throw, hit, and miss
+- **Dynamic Fruit Panel**: Randomized fruit order for each order
 - **Collision Detection**: Score points by hitting the invisible mouth gate
-- **Multiplayer**: Work together with other players to fulfill orders
+- **Multiplayer**: Work together with other players to fulfill orders with player names
+- **Visual Enhancements**: Screen frame overlay, How To Play guide, About screen
 
 ## Setup Requirements
 
@@ -35,10 +38,11 @@ See **[MULTIPLAYER_SETUP.md](https://github.com/borissedov/GGJ2026/blob/main/MUL
 ```
 HungryGodMask/
 ├── AppDelegate.swift
-├── ContentView.swift           # Main entry view
+├── ContentView.swift           # Main entry view with frame overlay
 ├── Views/
 │   ├── ARImageTrackingView.swift # AR view & session management
-│   ├── WelcomeView.swift       # Initial landing screen
+│   ├── WelcomeView.swift       # Welcome with How To Play & Share
+│   ├── AboutView.swift         # About screen with GGJ info
 │   ├── VideoSplashView.swift   # Intro video
 │   ├── QRScannerView.swift     # Scanner for joining rooms
 │   ├── PlayerNameView.swift    # Name entry
@@ -54,10 +58,18 @@ HungryGodMask/
 │   └── MouthGateEntity.swift   # Invisible collision gate
 ├── Systems/
 │   ├── GameManager.swift       # Game logic & state management
-│   ├── FruitSpawner.swift      # Fruit lifecycle management
-│   └── ThrowGestureHandler.swift # Gesture → physics
+│   ├── FruitSpawner.swift      # Fruit lifecycle with randomization
+│   ├── ThrowGestureHandler.swift # Gesture → physics
+│   └── SoundManager.swift      # Audio playback for sound effects
+├── Sounds/                     # Sound effect files
+│   ├── touch.mp3
+│   ├── throw.mp3
+│   ├── hit.mp3
+│   └── miss.mp3
 └── Assets.xcassets/
     ├── AR Resources.arresourcegroup/
+    ├── Logo.imageset/
+    ├── ScreenFrame.imageset/   # Leaves border overlay
     └── [Fruit sprites]
 ```
 
@@ -71,11 +83,15 @@ HungryGodMask/
 
 ## Playing the Game
 
-1.  **Join a Room**: Scan the QR code on the Host Display or enter the code manually.
-2.  **Lobby**: Wait for other players and tap "Ready".
-3.  **AR Mode**: When the game starts, point your camera at the TV screen showing the mask.
-4.  **Throw**: Swipe on the fruits at the bottom of your screen to throw them into the mask's mouth.
-5.  **Collaborate**: Work with your team to fulfill the orders displayed on the screen!
+1.  **Welcome**: Read "How To Play" guide and optionally share host URL to TV/projector.
+2.  **Join a Room**: Scan the QR code on the Host Display or enter the code manually.
+3.  **Enter Name**: Provide your player name for the leaderboard.
+4.  **Lobby**: Wait for other players and tap "Ready".
+5.  **AR Mode**: When the 6-second countdown completes, point your camera at the TV screen showing the mask.
+6.  **Throw**: Swipe on the randomized fruits at the bottom of your screen to throw them into the mask's mouth.
+7.  **Listen**: Enjoy sound effects for touch, throw, hit, and miss!
+8.  **Results**: View your individual contribution and team stars.
+9.  **Restart**: Tap "Play Again" to start a new game!
 
 ## Customization
 
@@ -97,10 +113,21 @@ private let velocityMultiplier: Float = 0.003
 private let maxThrowVelocity: Float = 10.0
 ```
 
+## Assets Required
+
+Place in `Assets.xcassets/`:
+- **Logo.imageset**: Game logo for About screen
+- **ScreenFrame.imageset**: Leaves border overlay PNG
+
+Place in `Sounds/` folder:
+- `touch.mp3` - Touch sound effect
+- `throw.mp3` - Throw sound effect
+- `hit.mp3` - Hit sound effect
+- `miss.mp3` - Miss sound effect
+
 ## Documentation
 
 - **[MULTIPLAYER_README.md](https://github.com/borissedov/GGJ2026/blob/main/MULTIPLAYER_README.md)** - Overview of the multiplayer architecture
-- **[MULTIPLAYER_SETUP.md](https://github.com/borissedov/GGJ2026/blob/main/MULTIPLAYER_SETUP.md)** - Detailed setup guide
 - **[ARCHITECTURE.md](https://github.com/borissedov/GGJ2026/blob/main/ARCHITECTURE.md)** - High-level architectural overview
 - **[GAME_DESCRIPTION.md](https://github.com/borissedov/GGJ2026/blob/main/GAME_DESCRIPTION.md)** - Game design document
 

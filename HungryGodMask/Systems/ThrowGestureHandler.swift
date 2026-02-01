@@ -102,6 +102,10 @@ class ThrowGestureHandler {
         selectedFruit = fruit
         gestureStartTime = Date()
         fruit.startDragging()
+        
+        // Play touch sound
+        SoundManager.shared.playTouch()
+        
         print("🍎 DEBUG: Started dragging \(fruit.fruitType.rawValue)")
     }
     
@@ -158,6 +162,9 @@ class ThrowGestureHandler {
         
         // Expand fruit to full size and apply throw
         fruit.expandAndThrow(velocity: throwVelocity)
+        
+        // Play throw sound
+        SoundManager.shared.playThrow()
         
         print("🍎 DEBUG: Threw \(fruit.fruitType.rawValue) with velocity \(throwVelocity)")
         

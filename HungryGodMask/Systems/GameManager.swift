@@ -24,6 +24,8 @@ class GameManager: ObservableObject {
     @Published var networkState: NetworkGameState?
     @Published var currentOrder: OrderDisplay?
     @Published var isInMultiplayerMode: Bool = false
+    @Published var isGameOver: Bool = false
+    @Published var gameResults: String?
     
     private var collisionSubscription: Cancellable?
     private var hitFruits: Set<ObjectIdentifier> = []
@@ -34,6 +36,9 @@ class GameManager: ObservableObject {
     // Multiplayer
     private var signalRClient: SignalRClient?
     private var currentRoomId: UUID?
+    
+    // Reference to fruit spawner for randomization
+    private weak var fruitSpawner: FruitSpawner?
     
     init() {
         // Initialize haptic feedback (may not be available on all devices)
@@ -145,8 +150,8 @@ class GameManager: ObservableObject {
     }
     
     private func playHitFeedback() {
-        // Optional: Play sound effect
-        // AudioServicesPlaySystemSound(SystemSoundID(1103))
+        // Play hit sound
+        SoundManager.shared.playHit()
     }
     
     func resetScore() {
@@ -181,15 +186,57 @@ class GameManager: ObservableObject {
     func handleOrderStarted(_ event: OrderStartedEvent) {
         currentOrder = OrderDisplay(from: event)
         print("🎯 New order started: \(event.orderNumber)")
+        
+        // Randomize fruit panel order for this order
+        fruitSpawner?.randomizeFruitOrder()
+    }
+    
+    // Called from ARImageTrackingView to pass FruitSpawner reference
+    func setFruitSpawner(_ spawner: FruitSpawner) {
+        self.fruitSpawner = spawner
     }
     
     func handleOrderTotalsUpdated(_ event: OrderTotalsUpdatedEvent) {
-        // Must unwrap, mutate, and reassign to trigger @Published update
-        if var order = currentOrder {
-            order.updateSubmitted(event)
-            currentOrder = order
-            print("📊 Order totals updated: \(order.submitted)")
+        // Must run on main thread to trigger @Published update
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Must unwrap, mutate, and reassign to trigger @Published update
+            if var order = self.currentOrder {
+                order.updateSubmitted(event)
+                self.currentOrder = order
+                print("📊 Order totals updated on main thread: \(order.submitted)")
+            }
         }
+    }
+    
+    func handleGameFinished(successCount: Int, failCount: Int) {
+        isGameOver = true
+        gameResults = "Game Complete! ✅ \(successCount) successes, ❌ \(failCount) failures"
+        print("🎉 Game finished: \(gameResults ?? "")")
+    }
+    
+    func handleGameOver(reason: String) {
+        isGameOver = true
+        gameResults = reason
+        print("💀 Game over: \(reason)")
+    }
+    
+    func restartGame() {
+        // Reset all game state
+        resetScore()
+        isGameOver = false
+        gameResults = nil
+        currentOrder = nil
+        networkState = nil
+        
+        // Disconnect from current room
+        signalRClient?.disconnect()
+        signalRClient = nil
+        currentRoomId = nil
+        isInMultiplayerMode = false
+        
+        print("🔄 Game restarted")
     }
     
     deinit {

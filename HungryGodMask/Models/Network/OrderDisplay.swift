@@ -5,11 +5,19 @@
 
 import Foundation
 
-struct OrderDisplay {
+struct OrderDisplay: Equatable {
     let orderNumber: Int
     let required: [FruitType: Int]
     var submitted: [FruitType: Int]  // Changed to var so it can be updated
     var timeRemaining: Int
+    
+    static func == (lhs: OrderDisplay, rhs: OrderDisplay) -> Bool {
+        // Custom equality to ensure SwiftUI detects changes
+        return lhs.orderNumber == rhs.orderNumber &&
+               lhs.required == rhs.required &&
+               lhs.submitted == rhs.submitted &&
+               lhs.timeRemaining == rhs.timeRemaining
+    }
     
     init(from event: OrderStartedEvent) {
         self.orderNumber = event.orderNumber
@@ -37,6 +45,7 @@ struct OrderDisplay {
         for (key, value) in event.submitted {
             if let fruitType = FruitType(rawValue: key.lowercased()) {
                 submittedDict[fruitType] = value
+                print("   📊 Updating \(fruitType.rawValue): \(value)")
             }
         }
         // Keep zeros for fruit types not in the update
@@ -47,5 +56,6 @@ struct OrderDisplay {
         }
         // Actually update the submitted counts!
         self.submitted = submittedDict
+        print("   ✅ Submitted counts updated: \(self.submitted)")
     }
 }

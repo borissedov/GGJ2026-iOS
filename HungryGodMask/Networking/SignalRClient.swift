@@ -27,6 +27,8 @@ class SignalRClient: ObservableObject {
     var onOrderStarted: ((OrderStartedEvent) -> Void)?
     var onOrderTotalsUpdated: ((OrderTotalsUpdatedEvent) -> Void)?
     var onOrderResolved: ((OrderResolvedEvent) -> Void)?
+    var onGameFinished: ((GameFinishedEvent) -> Void)?
+    var onGameOver: ((GameOverEvent) -> Void)?
     var onError: ((ErrorEvent) -> Void)?
     
     init(hubUrl: String = "https://ohmyhungrygod-backend-f5che7gshshzhzhm.southafricanorth-01.azurewebsites.net/gamehub") {
@@ -59,7 +61,7 @@ class SignalRClient: ObservableObject {
         isConnected = false
     }
     
-    func joinRoom(joinCode: String) async throws -> JoinResponse {
+    func joinRoom(joinCode: String, playerName: String) async throws -> JoinResponse {
         // Wait for connection if not connected
         if hubConnection == nil {
             print("❌ Hub connection is nil")
@@ -69,6 +71,7 @@ class SignalRClient: ObservableObject {
         print("🔍 JOIN ROOM DEBUG:")
         print("   Hub URL: \(hubUrl)")
         print("   Join Code: '\(joinCode)'")
+        print("   Player Name: '\(playerName)'")
         print("   Is Connected: \(isConnected)")
         print("   Connection State: \(connectionState)")
         
@@ -89,10 +92,10 @@ class SignalRClient: ObservableObject {
         }
         
         print("📡 Invoking JoinRoom method on server")
-        print("   Arguments: [\"\(joinCode)\"]")
+        print("   Arguments: [\"\(joinCode)\", \"\(playerName)\"]")
         
         return try await withCheckedThrowingContinuation { continuation in
-            hubConnection?.invoke(method: "JoinRoom", arguments: [joinCode], resultType: JoinResponse.self) { result, error in
+            hubConnection?.invoke(method: "JoinRoom", arguments: [joinCode, playerName], resultType: JoinResponse.self) { result, error in
                 print("🔍 SERVER RESPONSE:")
                 
                 if let error = error {
@@ -112,6 +115,7 @@ class SignalRClient: ObservableObject {
                     print("✅ Success:")
                     print("   Room ID: \(result.roomId)")
                     print("   Player ID: \(result.playerId)")
+                    print("   Player Name: \(result.name)")
                     
                     continuation.resume(returning: result)
                     
@@ -204,6 +208,22 @@ class SignalRClient: ObservableObject {
             guard let self = self else { return }
             DispatchQueue.main.async {
                 self.onOrderResolved?(event)
+            }
+        }
+        
+        hubConnection?.on(method: "GameFinished") { [weak self] (event: GameFinishedEvent) in
+            guard let self = self else { return }
+            print("🎉 GameFinished received")
+            DispatchQueue.main.async {
+                self.onGameFinished?(event)
+            }
+        }
+        
+        hubConnection?.on(method: "GameOver") { [weak self] (event: GameOverEvent) in
+            guard let self = self else { return }
+            print("💀 GameOver received")
+            DispatchQueue.main.async {
+                self.onGameOver?(event)
             }
         }
         

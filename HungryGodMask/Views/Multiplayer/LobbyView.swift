@@ -221,7 +221,23 @@ struct LobbyView: View {
         }
         
         signalRClient.onOrderTotalsUpdated = { event in
+            print("📊 OrderTotalsUpdated event received in LobbyView")
             self.gameManager.handleOrderTotalsUpdated(event)
+        }
+        
+        signalRClient.onGameFinished = { event in
+            DispatchQueue.main.async {
+                self.gameManager.handleGameFinished(
+                    successCount: event.successCount,
+                    failCount: event.failCount
+                )
+            }
+        }
+        
+        signalRClient.onGameOver = { event in
+            DispatchQueue.main.async {
+                self.gameManager.handleGameOver(reason: event.reason)
+            }
         }
         
         signalRClient.onError = { error in
@@ -247,14 +263,14 @@ struct LobbyView: View {
         
         Task {
             do {
-                print("🎮 Attempting to join room with code: \(joinCode)")
-                let response = try await signalRClient.joinRoom(joinCode: joinCode.uppercased())
+                print("🎮 Attempting to join room with code: \(joinCode) as \(playerName)")
+                let response = try await signalRClient.joinRoom(joinCode: joinCode.uppercased(), playerName: playerName)
                 await MainActor.run {
                     roomId = response.roomId
                     playerId = response.playerId
                     gameManager.enableMultiplayer(signalRClient: signalRClient, roomId: response.roomId)
                     isJoining = false
-                    print("✅ Successfully joined room: \(response.roomId)")
+                    print("✅ Successfully joined room: \(response.roomId) as \(response.name)")
                 }
             } catch let error as NetworkError {
                 await MainActor.run {

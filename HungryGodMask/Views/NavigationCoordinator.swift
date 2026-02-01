@@ -10,6 +10,7 @@ import SwiftUI
 enum AppScreen {
     case videoSplash
     case welcome
+    case about
     case qrScanner
     case playerName
     case lobby
@@ -24,14 +25,18 @@ struct NavigationCoordinator: View {
     
     // Navigation state
     @State private var navigateToQRScanner = false
+    @State private var navigateToAbout = false
+    @State private var navigateBackFromQR = false
     @State private var navigateToPlayerName = false
     @State private var navigateToLobby = false
     @State private var navigateToARGame = false
+    @State private var restartToQRScanner = false
     
     // Data state
     @State private var scannedCode: String?
     @State private var manualCode = ""
     @State private var playerName = ""
+    @State private var lastPlayerName = "" // Store for restart
     
     var body: some View {
         ZStack {
@@ -48,23 +53,46 @@ struct NavigationCoordinator: View {
                 
             case .welcome:
                 WelcomeView(
-                    navigateToQRScanner: $navigateToQRScanner
+                    navigateToQRScanner: $navigateToQRScanner,
+                    navigateToAbout: $navigateToAbout
                 )
                 .onChange(of: navigateToQRScanner) { _, navigate in
                     if navigate {
                         currentScreen = .qrScanner
                     }
                 }
+                .onChange(of: navigateToAbout) { _, navigate in
+                    if navigate {
+                        currentScreen = .about
+                    }
+                }
+                
+            case .about:
+                AboutView(navigateBack: Binding(
+                    get: { false },
+                    set: { if $0 {
+                        navigateToAbout = false
+                        currentScreen = .welcome
+                    }}
+                ))
                 
             case .qrScanner:
                 QRScannerView(
                     scannedCode: $scannedCode,
                     manualCode: $manualCode,
-                    navigateToPlayerName: $navigateToPlayerName
+                    navigateToPlayerName: $navigateToPlayerName,
+                    navigateBack: $navigateBackFromQR
                 )
                 .onChange(of: navigateToPlayerName) { _, navigate in
                     if navigate {
                         currentScreen = .playerName
+                    }
+                }
+                .onChange(of: navigateBackFromQR) { _, navigate in
+                    if navigate {
+                        navigateToQRScanner = false
+                        navigateBackFromQR = false
+                        currentScreen = .welcome
                     }
                 }
                 
@@ -74,8 +102,16 @@ struct NavigationCoordinator: View {
                     playerName: $playerName,
                     navigateToLobby: $navigateToLobby
                 )
+                .onAppear {
+                    // Pre-fill with last player name if available
+                    if playerName.isEmpty && !lastPlayerName.isEmpty {
+                        playerName = lastPlayerName
+                    }
+                }
                 .onChange(of: navigateToLobby) { _, navigate in
                     if navigate {
+                        // Store the name for future restarts
+                        lastPlayerName = playerName
                         currentScreen = .lobby
                     }
                 }
@@ -102,8 +138,27 @@ struct NavigationCoordinator: View {
                 }
                 
             case .arGame:
-                ContentView()
+                ContentView(restartToQRScanner: $restartToQRScanner)
                     .environmentObject(gameManager)
+                    .onChange(of: restartToQRScanner) { _, shouldRestart in
+                        if shouldRestart {
+                            // Reset flags
+                            restartToQRScanner = false
+                            navigateToARGame = false
+                            navigateToLobby = false
+                            navigateToPlayerName = false
+                            
+                            // Keep player name for convenience
+                            lastPlayerName = playerName
+                            
+                            // Clear join codes
+                            scannedCode = nil
+                            manualCode = ""
+                            
+                            // Go back to QR scanner
+                            currentScreen = .qrScanner
+                        }
+                    }
             }
         }
         .transition(.opacity)
