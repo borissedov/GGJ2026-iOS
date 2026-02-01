@@ -13,16 +13,12 @@ struct WelcomeView: View {
     
     var body: some View {
         ZStack {
-            // Background gradient
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.4, green: 0.2, blue: 0.6),
-                    Color(red: 0.2, green: 0.1, blue: 0.4)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // Background image
+            Image("BackgroundWelcome")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 40) {
                 Spacer()
@@ -37,10 +33,6 @@ struct WelcomeView: View {
                         .font(.system(size: 52, weight: .black, design: .rounded))
                         .foregroundColor(.white)
                         .shadow(color: .purple.opacity(0.5), radius: 10, x: 0, y: 5)
-                    
-                    Text("🍉🥥🍑🍌")
-                        .font(.system(size: 50))
-                        .padding(.top, 10)
                 }
                 
                 Spacer()

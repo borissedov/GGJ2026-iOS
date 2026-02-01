@@ -48,8 +48,8 @@ struct ContentView : View {
                 
                 Spacer()
                 
-                // Tracking status indicator
-                if !gameManager.isTracking {
+                // Tracking status indicator (only show before first detection)
+                if !gameManager.hasDetectedImage {
                     Text("Point camera at the mask on TV/screen")
                         .font(.headline)
                         .foregroundColor(.white)

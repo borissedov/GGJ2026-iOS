@@ -57,6 +57,7 @@ struct ARImageTrackingView: UIViewRepresentable {
         var fruitSpawner: FruitSpawner?
         var gestureHandler: ThrowGestureHandler?
         var updateSubscription: Combine.Cancellable?
+        var lastTrackedTransform: simd_float4x4?  // Store last known position
         
         init(gameManager: GameManager) {
             self.gameManager = gameManager
@@ -85,11 +86,25 @@ struct ARImageTrackingView: UIViewRepresentable {
         func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
             for anchor in anchors {
                 if let imageAnchor = anchor as? ARImageAnchor {
-                    // Check if image is being tracked
+                    // Only update position when actively tracked
                     if imageAnchor.isTracked {
+                        // Store the current transform
+                        lastTrackedTransform = imageAnchor.transform
+                        
+                        // Manually update the world anchor to match the image position
+                        if let anchorEntity = self.imageAnchor {
+                            anchorEntity.transform = Transform(matrix: imageAnchor.transform)
+                        }
+                        
                         // Update tracking state
                         DispatchQueue.main.async { [weak self] in
                             self?.gameManager.isTracking = true
+                        }
+                    } else {
+                        // Not tracked - keep anchor at last known position, just update state
+                        print("🍎 DEBUG: Tracking lost, keeping gate at last position")
+                        DispatchQueue.main.async { [weak self] in
+                            self?.gameManager.isTracking = false
                         }
                     }
                 }
@@ -99,9 +114,12 @@ struct ARImageTrackingView: UIViewRepresentable {
         func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
             for anchor in anchors {
                 if anchor is ARImageAnchor {
+                    // ARKit removed the image anchor, but we keep our world anchor in place
+                    // Just update tracking state - the collision box stays at last known position
                     DispatchQueue.main.async { [weak self] in
                         self?.gameManager.isTracking = false
                     }
+                    print("🍎 DEBUG: Image anchor removed by ARKit, but gate remains at last position")
                 }
             }
         }
@@ -122,12 +140,22 @@ struct ARImageTrackingView: UIViewRepresentable {
             guard let arView = arView else { return }
             
             // Only setup once
-            guard self.imageAnchor == nil else { return }
+            guard self.imageAnchor == nil else {
+                // Already set up - we'll update position in didUpdate
+                return
+            }
             
             print("🍎 DEBUG: Image detected, setting up AR content")
+            print("🍎 DEBUG: Image transform: \(imageAnchor.transform)")
             
-            // Create anchor entity at image position (for mask gate)
-            let anchorEntity = AnchorEntity(anchor: imageAnchor)
+            // Store initial transform
+            lastTrackedTransform = imageAnchor.transform
+            
+            // Create world-anchored entity at ORIGIN (not at the image position)
+            // We'll use the .transform property to position it at the image location
+            // This allows it to persist even when ARKit removes the image anchor
+            let anchorEntity = AnchorEntity(world: .zero)
+            anchorEntity.transform = Transform(matrix: imageAnchor.transform)
             arView.scene.addAnchor(anchorEntity)
             self.imageAnchor = anchorEntity
             
@@ -136,11 +164,12 @@ struct ARImageTrackingView: UIViewRepresentable {
             anchorEntity.addChild(gate)
             self.mouthGate = gate
             
-            print("🍎 DEBUG: Mouth gate created")
+            print("🍎 DEBUG: Mouth gate created at position: \(anchorEntity.transform.translation)")
             
             // Update tracking state
             DispatchQueue.main.async { [weak self] in
                 self?.gameManager.isTracking = true
+                self?.gameManager.hasDetectedImage = true  // Mark as detected (stays true forever)
             }
             
             // Delay fruit spawning until camera is ready

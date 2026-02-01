@@ -18,9 +18,9 @@ struct VideoSplashView: View {
                 .ignoresSafeArea()
             
             if let player = player {
-                VideoPlayer(player: player)
+                // Use custom full-screen video player (no letterboxing)
+                FullScreenVideoPlayer(player: player)
                     .ignoresSafeArea()
-                    .disabled(true) // Disable controls
             }
         }
         .onAppear {
@@ -56,5 +56,59 @@ struct VideoSplashView: View {
         
         // Auto-play
         player?.play()
+    }
+}
+
+// MARK: - Full Screen Video Player (no black bars)
+
+/// Custom video player that fills the entire screen using AVPlayerLayer with .resizeAspectFill
+struct FullScreenVideoPlayer: UIViewRepresentable {
+    let player: AVPlayer
+    
+    func makeUIView(context: Context) -> PlayerUIView {
+        let view = PlayerUIView()
+        view.player = player
+        return view
+    }
+    
+    func updateUIView(_ uiView: PlayerUIView, context: Context) {
+        uiView.player = player
+    }
+}
+
+/// UIView wrapper for AVPlayerLayer with aspectFill
+class PlayerUIView: UIView {
+    
+    var player: AVPlayer? {
+        get {
+            return playerLayer.player
+        }
+        set {
+            playerLayer.player = newValue
+        }
+    }
+    
+    override class var layerClass: AnyClass {
+        return AVPlayerLayer.self
+    }
+    
+    private var playerLayer: AVPlayerLayer {
+        return layer as! AVPlayerLayer
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupLayer()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupLayer()
+    }
+    
+    private func setupLayer() {
+        // This is the key - fill the screen, cropping edges if needed
+        playerLayer.videoGravity = .resizeAspectFill
+        playerLayer.backgroundColor = UIColor.black.cgColor
     }
 }

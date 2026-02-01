@@ -17,16 +17,12 @@ struct PlayerNameView: View {
     
     var body: some View {
         ZStack {
-            // Background gradient
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.black.opacity(0.9),
-                    Color.purple.opacity(0.7)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // Background image
+            Image("BackgroundWelcome")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 40) {
                 // Header
@@ -71,14 +67,23 @@ struct PlayerNameView: View {
                 
                 // Name input
                 VStack(spacing: 20) {
-                    TextField("Your Name", text: $playerName)
-                        .font(.system(size: 28, weight: .medium))
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(15)
-                        .padding(.horizontal, 40)
-                        .focused($isTextFieldFocused)
-                        .autocorrectionDisabled()
+                    ZStack(alignment: .leading) {
+                        if playerName.isEmpty {
+                            Text("Your Name")
+                                .font(.system(size: 28, weight: .medium))
+                                .foregroundColor(.gray.opacity(0.7))
+                                .padding(.leading, 56)
+                        }
+                        TextField("", text: $playerName)
+                            .font(.system(size: 28, weight: .medium))
+                            .foregroundColor(.black)
+                            .padding()
+                            .focused($isTextFieldFocused)
+                            .autocorrectionDisabled()
+                    }
+                    .background(Color.white)
+                    .cornerRadius(15)
+                    .padding(.horizontal, 40)
                     
                     Text("This is how others will see you")
                         .font(.subheadline)

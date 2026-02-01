@@ -22,13 +22,12 @@ struct LobbyView: View {
     
     var body: some View {
         ZStack {
-            // Background gradient
-            LinearGradient(
-                gradient: Gradient(colors: [Color.black.opacity(0.8), Color.purple.opacity(0.6)]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // Background image
+            Image("BackgroundWelcome")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 30) {
                 // Title
@@ -210,27 +209,29 @@ struct LobbyView: View {
     }
     
     private func setupEventHandlers() {
+        let navBinding = $navigateToAR
+        
         signalRClient.onStateSnapshot = { snapshot in
             print("📊 Received state snapshot - State: \(snapshot.state)")
-            gameManager.handleStateSnapshot(snapshot)
+            self.gameManager.handleStateSnapshot(snapshot)
         }
         
-        signalRClient.onOrderStarted = { [weak self] event in
+        signalRClient.onOrderStarted = { event in
             print("🎯 Order started - automatically transitioning to AR")
-            gameManager.handleOrderStarted(event)
+            self.gameManager.handleOrderStarted(event)
             // Auto-transition to AR when game starts
             DispatchQueue.main.async {
-                self?.navigateToAR = true
+                navBinding.wrappedValue = true
             }
         }
         
         signalRClient.onOrderTotalsUpdated = { event in
-            gameManager.handleOrderTotalsUpdated(event)
+            self.gameManager.handleOrderTotalsUpdated(event)
         }
         
-        signalRClient.onError = { [weak self] error in
+        signalRClient.onError = { error in
             DispatchQueue.main.async {
-                self?.errorMessage = error.message
+                self.errorMessage = error.message
             }
         }
     }

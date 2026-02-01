@@ -12,6 +12,7 @@ import UIKit
 class GameManager: ObservableObject {
     @Published var score: Int = 0
     @Published var isTracking: Bool = false
+    @Published var hasDetectedImage: Bool = false  // True after first detection, stays true
     
     // Separate counters for each fruit type
     @Published var bananaCount: Int = 0
