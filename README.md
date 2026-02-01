@@ -28,7 +28,7 @@ This app is designed to work with the **Oh My Hungry God** multiplayer system.
 2.  **Backend**: .NET 9 server managing game state.
 3.  **iOS Client**: This app, connecting via SignalR.
 
-See **[MULTIPLAYER_SETUP.md](MULTIPLAYER_SETUP.md)** for detailed deployment and connection instructions.
+See **[MULTIPLAYER_SETUP.md](https://github.com/borissedov/GGJ2026/blob/main/MULTIPLAYER_SETUP.md)** for detailed deployment and connection instructions.
 
 ## Project Structure
 
@@ -99,10 +99,10 @@ private let maxThrowVelocity: Float = 10.0
 
 ## Documentation
 
-- **[MULTIPLAYER_README.md](MULTIPLAYER_README.md)** - Overview of the multiplayer architecture
-- **[MULTIPLAYER_SETUP.md](MULTIPLAYER_SETUP.md)** - Detailed setup guide
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - High-level architectural overview
-- **[GAME_DESCRIPTION.md](GAME_DESCRIPTION.md)** - Game design document
+- **[MULTIPLAYER_README.md](https://github.com/borissedov/GGJ2026/blob/main/MULTIPLAYER_README.md)** - Overview of the multiplayer architecture
+- **[MULTIPLAYER_SETUP.md](https://github.com/borissedov/GGJ2026/blob/main/MULTIPLAYER_SETUP.md)** - Detailed setup guide
+- **[ARCHITECTURE.md](https://github.com/borissedov/GGJ2026/blob/main/ARCHITECTURE.md)** - High-level architectural overview
+- **[GAME_DESCRIPTION.md](https://github.com/borissedov/GGJ2026/blob/main/GAME_DESCRIPTION.md)** - Game design document
 
 ## Credits
 
