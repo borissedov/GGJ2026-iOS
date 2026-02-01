@@ -9,15 +9,16 @@ import SwiftUI
 
 struct LobbyView: View {
     @StateObject private var signalRClient = SignalRClient()
-    @State private var joinCode = ""
     @State private var isReady = false
     @State private var roomId: UUID?
     @State private var playerId: UUID?
     @State private var errorMessage: String?
     @State private var isJoining = false
-    @State private var navigateToAR = false
     
     @ObservedObject var gameManager: GameManager
+    @Binding var joinCode: String
+    @Binding var playerName: String
+    @Binding var navigateToAR: Bool
     
     var body: some View {
         ZStack {
@@ -42,43 +43,77 @@ struct LobbyView: View {
                 
                 Spacer()
                 
-                // Join Code Input
+                // Join Code Display
                 VStack(spacing: 20) {
-                    TextField("Enter Join Code", text: $joinCode)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.system(size: 24, weight: .medium, design: .monospaced))
-                        .textCase(.uppercase)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
-                        .disabled(roomId != nil)
+                    // Show player name and join code
+                    VStack(spacing: 10) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "person.fill")
+                                .foregroundColor(.white.opacity(0.9))
+                            Text(playerName)
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(12)
+                        
+                        HStack(spacing: 8) {
+                            Image(systemName: "door.left.hand.open")
+                                .foregroundColor(.white.opacity(0.9))
+                            Text("Room: \(joinCode)")
+                                .font(.title3)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.2))
+                        .cornerRadius(12)
+                    }
                     
                     if roomId == nil {
-                        Button(action: joinRoom) {
+                        // Show joining status
+                        if isJoining {
                             HStack {
-                                if isJoining {
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                } else {
-                                    Text("Join Room")
-                                        .font(.headline)
-                                }
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                Text("Joining room...")
+                                    .foregroundColor(.white)
                             }
-                            .frame(maxWidth: 200)
                             .padding()
-                            .background(joinCode.count >= 6 ? Color.green : Color.gray)
-                            .foregroundColor(.white)
-                            .cornerRadius(15)
                         }
-                        .disabled(joinCode.count < 6 || isJoining)
                     }
                     
                     // Error message
                     if let error = errorMessage {
-                        Text(error)
-                            .foregroundColor(.red)
-                            .padding()
-                            .background(Color.white.opacity(0.9))
-                            .cornerRadius(10)
+                        VStack(spacing: 12) {
+                            Text(error)
+                                .foregroundColor(.red)
+                                .multilineTextAlignment(.center)
+                                .padding()
+                            
+                            Button(action: {
+                                errorMessage = nil
+                                joinRoom()
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Try Again")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 10)
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                            }
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(10)
                     }
                 }
                 
@@ -119,12 +154,32 @@ struct LobbyView: View {
                 Spacer()
                 
                 // Connection status
-                HStack {
-                    Circle()
-                        .fill(signalRClient.isConnected ? Color.green : Color.red)
-                        .frame(width: 10, height: 10)
-                    Text(signalRClient.isConnected ? "Connected" : "Disconnected")
-                        .foregroundColor(.white.opacity(0.8))
+                VStack(spacing: 8) {
+                    HStack {
+                        Circle()
+                            .fill(signalRClient.isConnected ? Color.green : Color.red)
+                            .frame(width: 10, height: 10)
+                        Text(signalRClient.connectionState)
+                            .foregroundColor(.white.opacity(0.8))
+                            .font(.caption)
+                    }
+                    
+                    if !signalRClient.isConnected {
+                        Button(action: {
+                            signalRClient.connect()
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.clockwise")
+                                Text("Reconnect")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.blue.opacity(0.6))
+                            .cornerRadius(8)
+                        }
+                    }
                 }
             }
             .padding()
@@ -132,10 +187,11 @@ struct LobbyView: View {
         .onAppear {
             signalRClient.connect()
             setupEventHandlers()
-        }
-        .fullScreenCover(isPresented: $navigateToAR) {
-            ContentView()
-                .environmentObject(gameManager)
+            
+            // Auto-join room when view appears
+            if roomId == nil {
+                joinRoom()
+            }
         }
     }
     
@@ -159,23 +215,60 @@ struct LobbyView: View {
     }
     
     private func joinRoom() {
-        guard !joinCode.isEmpty else { return }
+        guard !joinCode.isEmpty, roomId == nil else {
+            print("⚠️ Cannot join: joinCode=\(joinCode), roomId=\(roomId?.description ?? "nil")")
+            return
+        }
         
         isJoining = true
         errorMessage = nil
         
+        print("📱 JOIN ROOM DEBUG:")
+        print("   Join Code: \(joinCode)")
+        print("   Connection State: \(signalRClient.connectionState)")
+        print("   Is Connected: \(signalRClient.isConnected)")
+        
         Task {
             do {
+                print("🎮 Attempting to join room with code: \(joinCode)")
                 let response = try await signalRClient.joinRoom(joinCode: joinCode.uppercased())
                 await MainActor.run {
                     roomId = response.roomId
                     playerId = response.playerId
                     gameManager.enableMultiplayer(signalRClient: signalRClient, roomId: response.roomId)
                     isJoining = false
+                    print("✅ Successfully joined room: \(response.roomId)")
+                }
+            } catch let error as NetworkError {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                    isJoining = false
+                    print("❌ Network error: \(error)")
+                    print("   Error type: NetworkError.\(error)")
                 }
             } catch {
                 await MainActor.run {
-                    errorMessage = "Failed to join room: \(error.localizedDescription)"
+                    let errorDesc = error.localizedDescription
+                    
+                    // Log full error details
+                    print("❌ JOIN ROOM ERROR DETAILS:")
+                    print("   Error: \(error)")
+                    print("   Description: \(errorDesc)")
+                    print("   Type: \(type(of: error))")
+                    if let nsError = error as NSError? {
+                        print("   Domain: \(nsError.domain)")
+                        print("   Code: \(nsError.code)")
+                        print("   UserInfo: \(nsError.userInfo)")
+                    }
+                    
+                    // Provide more user-friendly error messages
+                    if errorDesc.contains("error 3") || errorDesc.contains("SignalRError") {
+                        errorMessage = "Connection error. Please ensure you're connected to the internet and try again."
+                    } else if errorDesc.contains("room not found") || errorDesc.contains("invalid") || errorDesc.lowercased().contains("notfound") {
+                        errorMessage = "Room not found. Please check the code on screen and try again."
+                    } else {
+                        errorMessage = "Failed to join: \(errorDesc)"
+                    }
                     isJoining = false
                 }
             }
