@@ -17,9 +17,10 @@ class MouthGateEntity: Entity {
     static let defaultMouthOffset = SIMD3<Float>(0, -0.05, 0.05)  // 5cm down, 5cm forward from image
     
     // Gate dimensions (generous sizing to catch fruits)
-    static let gateWidth: Float = 0.25   // 25cm wide (screen horizontal)
-    static let gateHeight: Float = 0.20  // 20cm tall (screen vertical)
-    static let gateDepth: Float = 0.15   // 15cm depth (toward camera)
+    // Box parameters map to: width=X (horizontal), height=Y (vertical), depth=Z (forward/back)
+    static let gateWidth: Float = 0.25   // 25cm wide (X axis - screen horizontal)
+    static let gateHeight: Float = 0.20  // 20cm tall (Y axis - screen vertical)
+    static let gateDepth: Float = 0.15   // 15cm deep (Z axis - toward/away from camera)
     
     required init(at offset: SIMD3<Float> = defaultMouthOffset) {
         super.init()

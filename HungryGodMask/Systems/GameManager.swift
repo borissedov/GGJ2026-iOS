@@ -40,6 +40,9 @@ class GameManager: ObservableObject {
     // Reference to fruit spawner for randomization
     private weak var fruitSpawner: FruitSpawner?
     
+    // Order countdown timer
+    private var orderTimer: Timer?
+    
     init() {
         // Initialize haptic feedback (may not be available on all devices)
         if UIDevice.current.userInterfaceIdiom == .phone {
@@ -189,6 +192,32 @@ class GameManager: ObservableObject {
         
         // Randomize fruit panel order for this order
         fruitSpawner?.randomizeFruitOrder()
+        
+        // Start countdown timer
+        startOrderTimer()
+    }
+    
+    private func startOrderTimer() {
+        // Cancel any existing timer
+        orderTimer?.invalidate()
+        
+        // Create timer that fires every second
+        orderTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                if var order = self.currentOrder, order.timeRemaining > 0 {
+                    order.timeRemaining -= 1
+                    self.currentOrder = order
+                    // print("⏱️ Order time: \(order.timeRemaining)s")
+                }
+            }
+        }
+    }
+    
+    private func stopOrderTimer() {
+        orderTimer?.invalidate()
+        orderTimer = nil
     }
     
     // Called from ARImageTrackingView to pass FruitSpawner reference
@@ -211,18 +240,28 @@ class GameManager: ObservableObject {
     }
     
     func handleGameFinished(successCount: Int, failCount: Int) {
+        stopOrderTimer()
         isGameOver = true
         gameResults = "Game Complete! ✅ \(successCount) successes, ❌ \(failCount) failures"
         print("🎉 Game finished: \(gameResults ?? "")")
     }
     
     func handleGameOver(reason: String) {
+        stopOrderTimer()
         isGameOver = true
         gameResults = reason
         print("💀 Game over: \(reason)")
     }
     
+    func handleOrderResolved() {
+        // Stop timer when order ends
+        stopOrderTimer()
+    }
+    
     func restartGame() {
+        // Stop any running timers
+        stopOrderTimer()
+        
         // Reset all game state
         resetScore()
         isGameOver = false
@@ -241,5 +280,6 @@ class GameManager: ObservableObject {
     
     deinit {
         collisionSubscription?.cancel()
+        orderTimer?.invalidate()
     }
 }

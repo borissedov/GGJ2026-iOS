@@ -225,6 +225,11 @@ struct LobbyView: View {
             self.gameManager.handleOrderTotalsUpdated(event)
         }
         
+        signalRClient.onOrderResolved = { event in
+            print("✅ OrderResolved event received")
+            self.gameManager.handleOrderResolved()
+        }
+        
         signalRClient.onGameFinished = { event in
             DispatchQueue.main.async {
                 self.gameManager.handleGameFinished(

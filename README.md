@@ -95,22 +95,35 @@ HungryGodMask/
 
 ## Customization
 
-### Adjust Mouth Gate Position
-Edit `Entities/MouthGateEntity.swift`:
+### AR Coordinates and Positioning
+
+See **[AR_COORDINATES_GUIDE.md](AR_COORDINATES_GUIDE.md)** for comprehensive guide on:
+- ARKit coordinate system explained
+- How gate positioning works
+- Tuning gate size and position
+- Throw gesture calculations
+- Troubleshooting tracking and collision issues
+
+### Quick Adjustments
+
+**Mouth Gate Position** (`Entities/MouthGateEntity.swift`):
 ```swift
-static let defaultMouthOffset = SIMD3<Float>(0, -0.05, 0)  // X, Y, Z in meters
+static let defaultMouthOffset = SIMD3<Float>(0, -0.05, 0.05)  // X, Y, Z in meters
+// Y: negative = down, positive = up
+// Z: distance from screen surface
 ```
 
-### Adjust Fruit Physics
-Edit values in `Entities/FruitType.swift`:
-- `size`: Physical dimensions
-- `mass`: Weight for throw physics
-
-### Tune Throwing Feel
-Edit `Systems/ThrowGestureHandler.swift`:
+**Gate Size** (if missing hits):
 ```swift
-private let velocityMultiplier: Float = 0.003
-private let maxThrowVelocity: Float = 10.0
+static let gateWidth: Float = 0.25   // Horizontal width
+static let gateHeight: Float = 0.20  // Vertical height
+static let gateDepth: Float = 0.15   // Forward depth
+```
+
+**Throw Sensitivity** (`Systems/ThrowGestureHandler.swift`):
+```swift
+private let velocityMultiplier: Float = 0.003  // Higher = more sensitive
+private let maxThrowVelocity: Float = 10.0     // Maximum throw speed
 ```
 
 ## Assets Required
@@ -127,6 +140,7 @@ Place in `Sounds/` folder:
 
 ## Documentation
 
+- **[AR_COORDINATES_GUIDE.md](AR_COORDINATES_GUIDE.md)** - AR coordinate system, positioning, and troubleshooting
 - **[MULTIPLAYER_README.md](https://github.com/borissedov/GGJ2026/blob/main/MULTIPLAYER_README.md)** - Overview of the multiplayer architecture
 - **[ARCHITECTURE.md](https://github.com/borissedov/GGJ2026/blob/main/ARCHITECTURE.md)** - High-level architectural overview
 - **[GAME_DESCRIPTION.md](https://github.com/borissedov/GGJ2026/blob/main/GAME_DESCRIPTION.md)** - Game design document
